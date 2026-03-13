@@ -28,8 +28,9 @@
             <div id="user-info" class="flex items-center gap-3">
                 <button id="authBtn" class="bg-white border border-gray-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 shadow-sm transition-all">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" class="w-4 h-4" alt="Google">
-                    เชื่อมต่อบัญชี Google
+                    <span id="authBtnText">เชื่อมต่อบัญชี Google</span>
                 </button>
+                <button id="logoutBtn" class="hidden text-xs text-red-500 hover:underline">ออกจากระบบ</button>
             </div>
         </div>
     </nav>
@@ -37,12 +38,13 @@
     <main class="max-w-6xl mx-auto px-4 pb-12">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-6">
+                <!-- Step 1: Upload -->
                 <div class="bg-white p-6 rounded-2xl custom-shadow">
                     <h2 class="text-xl font-semibold mb-4 flex items-center gap-2 text-gray-800">
                         <span class="bg-blue-600 text-white w-7 h-7 flex items-center justify-center rounded-full text-sm font-bold">1</span>
                         <span>เลือกภาพ 360°</span>
                     </h2>
-                    <div id="upload-container" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors mb-4 relative bg-gray-50">
+                    <div id="upload-container" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors mb-4 bg-gray-50">
                         <input type="file" id="photoInput" accept="image/jpeg, image/jpg" class="hidden">
                         <label for="photoInput" class="cursor-pointer block">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -55,6 +57,7 @@
                     <div id="viewer-placeholder" class="bg-gray-100 flex items-center justify-center rounded-xl h-[400px] text-gray-400 italic">รอการโหลดภาพ...</div>
                 </div>
 
+                <!-- Step 2: Location -->
                 <div class="bg-white p-6 rounded-2xl custom-shadow">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                         <h2 class="text-xl font-semibold flex items-center gap-2 text-gray-800">
@@ -62,7 +65,7 @@
                             <span>ระบุตำแหน่ง</span>
                         </h2>
                         <div class="flex w-full md:w-auto gap-2">
-                            <input type="text" id="dmsInput" placeholder="9°04'20.1&quot;N 99°22'22.4&quot;E" class="flex-grow md:w-80 px-4 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            <input type="text" id="dmsInput" placeholder="พิกัด DMS เช่น 9°04'..." class="flex-grow md:w-80 px-4 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                             <button id="applyDmsBtn" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all">ค้นหา</button>
                         </div>
                     </div>
@@ -70,27 +73,23 @@
                     <div class="mt-4 bg-slate-800 p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-3">
                         <div class="flex items-center gap-2">
                             <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                            <p id="coords-display" class="text-sm font-mono text-green-400 font-bold tracking-widest uppercase">คลิกบนแผนที่หรือกรอกพิกัดด้านบน</p>
+                            <p id="coords-display" class="text-sm font-mono text-green-400 font-bold tracking-widest uppercase text-center">คลิกบนแผนที่เพื่อเลือกจุด</p>
                         </div>
-                        <button id="copyCoordsBtn" class="text-[10px] uppercase font-bold text-slate-400 hover:text-white transition-colors">คัดลอกพิกัดทศนิยม</button>
                     </div>
                 </div>
             </div>
 
             <div class="space-y-6">
+                <!-- Step 3: Publish & Debugging -->
                 <div class="bg-white p-6 rounded-2xl custom-shadow border-t-8 border-green-500 sticky top-8">
                     <h2 class="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2 uppercase">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         Publish to Maps
                     </h2>
                     
-                    <div id="auth-warning" class="bg-amber-50 border border-amber-200 p-4 rounded-xl text-amber-800 text-xs mb-4">
-                        <strong>ต้องเข้าสู่ระบบก่อน:</strong> การบันทึกลง Google Maps โดยตรงต้องใช้การยืนยันตัวตน
-                    </div>
-
                     <button id="directPublishBtn" disabled class="w-full bg-gray-200 text-gray-400 font-bold py-5 rounded-2xl transition-all flex flex-col items-center justify-center gap-1 shadow-lg cursor-not-allowed">
                         <span class="text-lg">บันทึกลง Google Maps ทันที</span>
-                        <span id="publishStatus" class="text-[10px] font-normal uppercase tracking-widest">กรุณาเชื่อมต่อบัญชี Google</span>
+                        <span id="publishStatus" class="text-[10px] font-normal uppercase tracking-widest">โปรดเตรียมข้อมูลให้ครบ</span>
                     </button>
 
                     <div id="progress-container" class="mt-6 hidden">
@@ -100,12 +99,20 @@
                         <p id="progress-text" class="text-[10px] text-gray-500 uppercase text-center font-bold">กำลังเริ่มต้น...</p>
                     </div>
 
-                    <div class="mt-8 border-t border-gray-100 pt-6">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">การแก้ปัญหา redirect_uri_mismatch</h3>
-                        <div class="text-[10px] text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2">
-                            <p>คัดลอก URL ด้านล่างนี้ไปวางใน Google Console หัวข้อ <strong>Authorized JavaScript origins</strong>:</p>
-                            <code id="currentUrlDisplay" class="block bg-white p-2 border border-slate-300 rounded font-mono break-all text-blue-600"></code>
-                            <button onclick="copyCurrentUrl()" class="text-blue-500 font-bold hover:underline">คลิกเพื่อคัดลอก URL</button>
+                    <!-- Debugging & Redirect URI Solution -->
+                    <div class="mt-8 border-t border-gray-100 pt-6 space-y-6">
+                        <div>
+                            <h3 class="text-xs font-bold text-blue-500 uppercase tracking-widest mb-3">การแก้ปัญหา Redirect URI</h3>
+                            <div class="text-[10px] text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                <p class="mb-2">คัดลอก URL ด้านล่างไปใส่ใน <strong>Authorized JavaScript origins</strong> ของ Google Console:</p>
+                                <code id="originUrl" class="block bg-white p-2 border border-slate-300 rounded font-mono break-all text-blue-600 mb-2"></code>
+                                <button onclick="copyOrigin()" class="text-blue-500 font-bold hover:underline">คลิกเพื่อคัดลอก URL</button>
+                            </div>
+                        </div>
+
+                        <div id="error-log-container" class="hidden">
+                            <h3 class="text-xs font-bold text-red-500 uppercase tracking-widest mb-3">รายละเอียดข้อผิดพลาด (API Log)</h3>
+                            <div id="error-log" class="text-[10px] bg-red-50 text-red-700 p-3 rounded-lg border border-red-100 font-mono break-words leading-relaxed"></div>
                         </div>
                     </div>
                 </div>
@@ -113,7 +120,7 @@
         </div>
     </main>
 
-    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-2xl opacity-0 pointer-events-none transition-all duration-300 z-[1000] shadow-2xl border border-slate-700 font-medium text-sm">ข้อความแจ้งเตือน</div>
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-2xl opacity-0 pointer-events-none transition-all duration-300 z-[1000] shadow-2xl border border-slate-700 font-medium text-sm"></div>
 
     <script>
         const CLIENT_ID = '772520947338-p56b737mr3a2gqsjkcedl90c6t55gmij.apps.googleusercontent.com';
@@ -124,18 +131,17 @@
         let marker = null;
         let selectedFile = null;
 
-        // แสดง URL ปัจจุบันเพื่อช่วยแก้ปัญหา Redirect URI Mismatch
-        const origin = window.location.origin;
-        document.getElementById('currentUrlDisplay').innerText = origin;
-
-        function copyCurrentUrl() {
+        // Origin Copy Helper
+        document.getElementById('originUrl').innerText = window.location.origin;
+        function copyOrigin() {
+            const text = window.location.origin;
             const el = document.createElement('textarea');
-            el.value = origin;
+            el.value = text;
             document.body.appendChild(el);
             el.select();
             document.execCommand('copy');
             document.body.removeChild(el);
-            showToast("คัดลอก URL สำหรับ Google Console แล้ว");
+            showToast("คัดลอก URL แล้ว");
         }
 
         function initMap() {
@@ -156,71 +162,40 @@
             checkReadyToPublish();
         }
 
-        function parseDMS(dmsStr) {
-            const regex = /(\d+)\s*°\s*(\d+)\s*'\s*([\d.]+)\s*"\s*([NSEW])/g;
-            let m, res = [];
-            while ((m = regex.exec(dmsStr)) !== null) {
-                let d = parseFloat(m[1]) + parseFloat(m[2])/60 + parseFloat(m[3])/3600;
-                if (m[4] === 'S' || m[4] === 'W') d *= -1;
-                res.push(d);
-            }
-            return res.length === 2 ? { lat: res[0], lng: res[1] } : null;
-        }
-
-        document.getElementById('applyDmsBtn').addEventListener('click', () => {
-            const res = parseDMS(document.getElementById('dmsInput').value.trim());
-            if (res) updateMarker(res.lat, res.lng, true);
-            else showToast("รูปแบบพิกัดไม่ถูกต้อง");
-        });
-
         function showToast(msg) {
             const t = document.getElementById('toast');
             t.innerText = msg; t.style.opacity = '1';
             setTimeout(() => t.style.opacity = '0', 3000);
         }
 
+        function logError(title, detail) {
+            const container = document.getElementById('error-log-container');
+            const log = document.getElementById('error-log');
+            container.classList.remove('hidden');
+            log.innerHTML = `<strong>${title}:</strong><br>${JSON.stringify(detail, null, 2)}`;
+        }
+
         document.getElementById('authBtn').addEventListener('click', () => {
-            try {
-                if (!tokenClient) {
-                    tokenClient = google.accounts.oauth2.initTokenClient({
-                        client_id: CLIENT_ID,
-                        scope: 'https://www.googleapis.com/auth/streetviewpublish',
-                        callback: (res) => {
-                            if (res.error) {
-                                console.error(res);
-                                showToast("Error: " + res.error);
-                                return;
-                            }
-                            if (res.access_token) {
-                                accessToken = res.access_token;
-                                onAuthSuccess();
-                            }
-                        },
-                    });
-                }
-                tokenClient.requestAccessToken();
-            } catch (err) {
-                console.error(err);
-                showToast("OAuth Error: โปรดตรวจสอบการตั้งค่าใน Google Console");
+            if (!tokenClient) {
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: 'https://www.googleapis.com/auth/streetviewpublish',
+                    callback: (res) => {
+                        if (res.error) {
+                            logError("Login Error", res);
+                            showToast("เข้าสู่ระบบไม่สำเร็จ");
+                            return;
+                        }
+                        accessToken = res.access_token;
+                        document.getElementById('authBtnText').innerText = "✅ เชื่อมต่อแล้ว";
+                        document.getElementById('logoutBtn').classList.remove('hidden');
+                        checkReadyToPublish();
+                        showToast("เชื่อมต่อ Google แล้ว");
+                    },
+                });
             }
+            tokenClient.requestAccessToken();
         });
-
-        function onAuthSuccess() {
-            document.getElementById('authBtn').innerHTML = "✅ เชื่อมต่อแล้ว";
-            document.getElementById('auth-warning').classList.add('hidden');
-            checkReadyToPublish();
-            showToast("เชื่อมต่อ Google สำเร็จ");
-        }
-
-        function checkReadyToPublish() {
-            const btn = document.getElementById('directPublishBtn');
-            if (accessToken && selectedFile && marker) {
-                btn.disabled = false;
-                btn.classList.remove('bg-gray-200', 'text-gray-400', 'cursor-not-allowed');
-                btn.classList.add('btn-google', 'text-white');
-                document.getElementById('publishStatus').innerText = "พร้อมบันทึกแล้ว";
-            }
-        }
 
         document.getElementById('photoInput').addEventListener('change', (e) => {
             selectedFile = e.target.files[0];
@@ -238,30 +213,46 @@
             }
         });
 
+        function checkReadyToPublish() {
+            const btn = document.getElementById('directPublishBtn');
+            if (accessToken && selectedFile && marker) {
+                btn.disabled = false;
+                btn.classList.remove('bg-gray-200', 'text-gray-400', 'cursor-not-allowed');
+                btn.classList.add('btn-google', 'text-white');
+                document.getElementById('publishStatus').innerText = "พร้อมอัปโหลด";
+            }
+        }
+
         document.getElementById('directPublishBtn').addEventListener('click', async () => {
-            if (!accessToken || !selectedFile || !marker) return;
             const btn = document.getElementById('directPublishBtn');
             const pBar = document.getElementById('progress-bar');
             const pText = document.getElementById('progress-text');
             document.getElementById('progress-container').classList.remove('hidden');
+            document.getElementById('error-log-container').classList.add('hidden');
             btn.disabled = true;
 
             try {
-                pText.innerText = "กำลังขอ Upload URL..."; pBar.style.width = "20%";
+                // 1. Get Upload URL
+                pText.innerText = "กำลังขอสิทธิ์อัปโหลด..."; pBar.style.width = "20%";
                 const uploadRes = await fetch('https://streetviewpublish.googleapis.com/v1/photo:startUpload', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${accessToken}` }
                 });
+                
+                if (!uploadRes.ok) throw await uploadRes.json();
                 const { uploadUrl } = await uploadRes.json();
 
-                pText.innerText = "กำลังอัปโหลดไฟล์ภาพ..."; pBar.style.width = "50%";
-                await fetch(uploadUrl, {
+                // 2. Upload Binary
+                pText.innerText = "กำลังส่งไฟล์ภาพ (โปรดรอ)..."; pBar.style.width = "50%";
+                const binaryRes = await fetch(uploadUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'image/jpeg' },
                     body: selectedFile
                 });
+                if (!binaryRes.ok) throw { step: 'Upload Binary', status: binaryRes.status };
 
-                pText.innerText = "กำลังระบุพิกัดลงแผนที่..."; pBar.style.width = "80%";
+                // 3. Create Metadata
+                pText.innerText = "กำลังสร้างจุดบน Google Maps..."; pBar.style.width = "80%";
                 const latlng = marker.getLatLng();
                 const metadata = {
                     uploadReference: { uploadUrl },
@@ -277,11 +268,16 @@
                 if (createRes.ok) {
                     pBar.style.width = "100%";
                     pText.innerText = "บันทึกสำเร็จ!";
-                    showToast("อัปโหลดสำเร็จ! จะปรากฏบนแผนที่ใน 24-72 ชม.");
-                } else { throw new Error("Metadata failed"); }
+                    showToast("สำเร็จ! ภาพจะแสดงบนแผนที่ใน 24-72 ชม.");
+                } else {
+                    throw await createRes.json();
+                }
+
             } catch (err) {
+                console.error(err);
+                logError("Publish Error", err);
                 pText.innerText = "เกิดข้อผิดพลาด!";
-                showToast("อัปโหลดล้มเหลว");
+                showToast("บันทึกไม่สำเร็จ ดูรายละเอียดด้านล่าง");
                 btn.disabled = false;
             }
         });
