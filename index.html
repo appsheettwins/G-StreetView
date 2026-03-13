@@ -38,7 +38,7 @@
     <main class="max-w-6xl mx-auto px-4 pb-12">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-6">
-                <!-- Step 1: Upload -->
+                <!-- Step 1: เลือกภาพ -->
                 <div class="bg-white p-6 rounded-2xl custom-shadow">
                     <h2 class="text-xl font-semibold mb-4 flex items-center gap-2 text-gray-800">
                         <span class="bg-blue-600 text-white w-7 h-7 flex items-center justify-center rounded-full text-sm font-bold">1</span>
@@ -57,7 +57,7 @@
                     <div id="viewer-placeholder" class="bg-gray-100 flex items-center justify-center rounded-xl h-[400px] text-gray-400 italic">รอการโหลดภาพ...</div>
                 </div>
 
-                <!-- Step 2: Location -->
+                <!-- Step 2: ระบุตำแหน่ง -->
                 <div class="bg-white p-6 rounded-2xl custom-shadow">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                         <h2 class="text-xl font-semibold flex items-center gap-2 text-gray-800">
@@ -80,7 +80,7 @@
             </div>
 
             <div class="space-y-6">
-                <!-- Step 3: Publish & Debugging -->
+                <!-- Step 3: บันทึก -->
                 <div class="bg-white p-6 rounded-2xl custom-shadow border-t-8 border-green-500 sticky top-8">
                     <h2 class="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2 uppercase">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -99,20 +99,21 @@
                         <p id="progress-text" class="text-[10px] text-gray-500 uppercase text-center font-bold">กำลังเริ่มต้น...</p>
                     </div>
 
-                    <!-- Debugging & Redirect URI Solution -->
                     <div class="mt-8 border-t border-gray-100 pt-6 space-y-6">
-                        <div>
-                            <h3 class="text-xs font-bold text-blue-500 uppercase tracking-widest mb-3">การแก้ปัญหา Redirect URI</h3>
-                            <div class="text-[10px] text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200">
-                                <p class="mb-2">คัดลอก URL ด้านล่างไปใส่ใน <strong>Authorized JavaScript origins</strong> ของ Google Console:</p>
-                                <code id="originUrl" class="block bg-white p-2 border border-slate-300 rounded font-mono break-all text-blue-600 mb-2"></code>
-                                <button onclick="copyOrigin()" class="text-blue-500 font-bold hover:underline">คลิกเพื่อคัดลอก URL</button>
+                        <!-- แจ้งเตือนเมื่อ API ไม่ได้เปิด -->
+                        <div id="api-activation-alert" class="hidden">
+                            <h3 class="text-xs font-bold text-red-600 uppercase tracking-widest mb-3 italic">⚠️ ตรวจพบ: API ยังไม่ได้เปิดใช้งาน</h3>
+                            <div class="text-[10px] text-red-800 bg-red-100 p-3 rounded-lg border border-red-200">
+                                <p class="mb-2">คุณต้องกดปุ่ม "ENABLE" ในหน้า Google Cloud ก่อนจึงจะอัปโหลดได้:</p>
+                                <a href="https://console.developers.google.com/apis/api/streetviewpublish.googleapis.com/overview?project=772520947338" target="_blank" class="block bg-red-600 text-white text-center p-2 rounded font-bold hover:bg-red-700 transition-colors">คลิกที่นี่เพื่อเปิดใช้งาน API</a>
                             </div>
                         </div>
 
+                        <!-- ส่วนแสดง Error Log ที่ปรับปรุงแล้ว -->
                         <div id="error-log-container" class="hidden">
-                            <h3 class="text-xs font-bold text-red-500 uppercase tracking-widest mb-3">รายละเอียดข้อผิดพลาด (API Log)</h3>
-                            <div id="error-log" class="text-[10px] bg-red-50 text-red-700 p-3 rounded-lg border border-red-100 font-mono break-words leading-relaxed"></div>
+                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">API Error Log (ดีบัก)</h3>
+                            <div id="error-log" class="text-[9px] bg-slate-900 text-green-400 p-3 rounded-lg font-mono break-all leading-relaxed max-h-60 overflow-y-auto"></div>
+                            <button onclick="location.reload()" class="mt-2 text-[10px] text-blue-500 underline">รีโหลดหน้าเว็บเพื่อลองใหม่</button>
                         </div>
                     </div>
                 </div>
@@ -130,19 +131,6 @@
         let map = null;
         let marker = null;
         let selectedFile = null;
-
-        // Origin Copy Helper
-        document.getElementById('originUrl').innerText = window.location.origin;
-        function copyOrigin() {
-            const text = window.location.origin;
-            const el = document.createElement('textarea');
-            el.value = text;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            showToast("คัดลอก URL แล้ว");
-        }
 
         function initMap() {
             map = L.map('map').setView([13.7563, 100.5018], 10);
@@ -162,42 +150,23 @@
             checkReadyToPublish();
         }
 
-        // ฟังก์ชันแปลง DMS เป็น Decimal (ปรับปรุงใหม่ให้ทนทานต่ออักขระพิเศษ)
         function parseDMS(input) {
             if (!input) return null;
-            
-            // Regex นี้รองรับ องศา, ลิปดา, ฟิลิปดา หลากหลายรูปแบบ
             const dmsRegex = /(\d+)\s*[°o]?\s*(\d+)\s*['′]?\s*([\d.]+)\s*["″]?\s*([NSEW])/gi;
-            
             let matches = [];
             let match;
             while ((match = dmsRegex.exec(input)) !== null) {
-                let deg = parseFloat(match[1]);
-                let min = parseFloat(match[2]);
-                let sec = parseFloat(match[3]);
-                let dir = match[4].toUpperCase();
-                
-                let dd = deg + min/60 + sec/3600;
-                if (dir === 'S' || dir === 'W') dd = dd * -1;
+                let dd = parseFloat(match[1]) + parseFloat(match[2])/60 + parseFloat(match[3])/3600;
+                if (match[4].toUpperCase() === 'S' || match[4].toUpperCase() === 'W') dd *= -1;
                 matches.push(dd);
             }
-            
-            // ต้องได้ทั้ง Latitude และ Longitude (2 ค่า)
-            if (matches.length >= 2) {
-                return { lat: matches[0], lng: matches[1] };
-            }
-            return null;
+            return matches.length >= 2 ? { lat: matches[0], lng: matches[1] } : null;
         }
 
         document.getElementById('applyDmsBtn').addEventListener('click', () => {
-            const input = document.getElementById('dmsInput').value;
-            const result = parseDMS(input);
-            if (result) {
-                updateMarker(result.lat, result.lng, true);
-                showToast("พบตำแหน่งแล้ว");
-            } else {
-                showToast("ไม่พบพิกัดในรูปแบบที่ถูกต้อง");
-            }
+            const result = parseDMS(document.getElementById('dmsInput').value);
+            if (result) { updateMarker(result.lat, result.lng, true); showToast("พบตำแหน่งแล้ว"); }
+            else showToast("ไม่พบพิกัดที่ถูกต้อง");
         });
 
         function showToast(msg) {
@@ -207,10 +176,26 @@
         }
 
         function logError(title, detail) {
+            console.error(title, detail);
             const container = document.getElementById('error-log-container');
             const log = document.getElementById('error-log');
+            const apiAlert = document.getElementById('api-activation-alert');
+            
             container.classList.remove('hidden');
-            log.innerHTML = `<strong>${title}:</strong><br>${JSON.stringify(detail, null, 2)}`;
+            
+            // ป้องกัน Error เป็น {} ว่างเปล่า
+            let errorString = "";
+            if (typeof detail === 'string') errorString = detail;
+            else if (detail instanceof Error) errorString = detail.message;
+            else errorString = JSON.stringify(detail, null, 2);
+
+            if (errorString === "{}") errorString = "Unknown Error (Possible Network/CORS Issue)";
+
+            log.innerText = `[${new Date().toLocaleTimeString()}] ${title}:\n${errorString}`;
+            
+            if (errorString.includes("PERMISSION_DENIED") || errorString.includes("not been used")) {
+                apiAlert.classList.remove('hidden');
+            }
         }
 
         document.getElementById('authBtn').addEventListener('click', () => {
@@ -219,16 +204,12 @@
                     client_id: CLIENT_ID,
                     scope: 'https://www.googleapis.com/auth/streetviewpublish',
                     callback: (res) => {
-                        if (res.error) {
-                            logError("Login Error", res);
-                            showToast("เข้าสู่ระบบไม่สำเร็จ");
-                            return;
-                        }
+                        if (res.error) { logError("Login", res); return; }
                         accessToken = res.access_token;
                         document.getElementById('authBtnText').innerText = "✅ เชื่อมต่อแล้ว";
                         document.getElementById('logoutBtn').classList.remove('hidden');
                         checkReadyToPublish();
-                        showToast("เชื่อมต่อ Google แล้ว");
+                        showToast("เชื่อมต่อสำเร็จ");
                     },
                 });
             }
@@ -265,29 +246,45 @@
             const btn = document.getElementById('directPublishBtn');
             const pBar = document.getElementById('progress-bar');
             const pText = document.getElementById('progress-text');
+            
+            if (!accessToken) {
+                showToast("โปรดเชื่อมต่อบัญชีก่อน");
+                return;
+            }
+
             document.getElementById('progress-container').classList.remove('hidden');
             document.getElementById('error-log-container').classList.add('hidden');
+            document.getElementById('api-activation-alert').classList.add('hidden');
             btn.disabled = true;
 
             try {
-                pText.innerText = "กำลังขอสิทธิ์อัปโหลด..."; pBar.style.width = "20%";
+                // 1. ขอ Upload URL
+                pText.innerText = "กำลังขอ Upload URL..."; pBar.style.width = "20%";
                 const uploadRes = await fetch('https://streetviewpublish.googleapis.com/v1/photo:startUpload', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${accessToken}` }
                 });
                 
-                if (!uploadRes.ok) throw await uploadRes.json();
+                if (!uploadRes.ok) {
+                    const errDetail = await uploadRes.json();
+                    throw errDetail;
+                }
                 const { uploadUrl } = await uploadRes.json();
 
-                pText.innerText = "กำลังส่งไฟล์ภาพ (โปรดรอ)..."; pBar.style.width = "50%";
+                // 2. ส่งไฟล์ Binary
+                pText.innerText = "กำลังส่งไฟล์รูปภาพ..."; pBar.style.width = "50%";
                 const binaryRes = await fetch(uploadUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'image/jpeg' },
                     body: selectedFile
                 });
-                if (!binaryRes.ok) throw { step: 'Upload Binary', status: binaryRes.status };
+                
+                if (!binaryRes.ok) {
+                    throw new Error(`Upload Binary Failed: Status ${binaryRes.status}`);
+                }
 
-                pText.innerText = "กำลังสร้างจุดบน Google Maps..."; pBar.style.width = "80%";
+                // 3. ส่งพิกัดและยืนยัน
+                pText.innerText = "กำลังส่งพิกัดไปที่ Maps..."; pBar.style.width = "80%";
                 const latlng = marker.getLatLng();
                 const metadata = {
                     uploadReference: { uploadUrl },
@@ -296,23 +293,24 @@
 
                 const createRes = await fetch('https://streetviewpublish.googleapis.com/v1/photo', {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Authorization': `Bearer ${accessToken}`, 
+                        'Content-Type': 'application/json' 
+                    },
                     body: JSON.stringify(metadata)
                 });
 
                 if (createRes.ok) {
-                    pBar.style.width = "100%";
-                    pText.innerText = "บันทึกสำเร็จ!";
-                    showToast("สำเร็จ! ภาพจะแสดงบนแผนที่ใน 24-72 ชม.");
-                } else {
-                    throw await createRes.json();
+                    pBar.style.width = "100%"; pText.innerText = "บันทึกสำเร็จ!";
+                    showToast("อัปโหลดสำเร็จ! ภาพจะเริ่มประมวลผลบน Google Maps");
+                } else { 
+                    const errDetail = await createRes.json();
+                    throw errDetail; 
                 }
 
             } catch (err) {
-                console.error(err);
                 logError("Publish Error", err);
                 pText.innerText = "เกิดข้อผิดพลาด!";
-                showToast("บันทึกไม่สำเร็จ ดูรายละเอียดด้านล่าง");
                 btn.disabled = false;
             }
         });
