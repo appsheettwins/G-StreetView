@@ -9,7 +9,6 @@
     <script type="text/javascript" src="https://cdn.pannellum.org/2.5/pannellum.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         #panorama { width: 100%; height: 400px; border-radius: 0.75rem; background: #1a1a1a; }
@@ -37,49 +36,37 @@
 
     <main class="max-w-6xl mx-auto px-4 pb-12">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
             <div class="lg:col-span-2 space-y-6">
-                <!-- Step 1: Upload -->
                 <div class="bg-white p-6 rounded-2xl custom-shadow">
                     <h2 class="text-xl font-semibold mb-4 flex items-center gap-2 text-gray-800">
                         <span class="bg-blue-600 text-white w-7 h-7 flex items-center justify-center rounded-full text-sm font-bold">1</span>
                         <span>เลือกภาพ 360°</span>
                     </h2>
-                    
                     <div id="upload-container" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors mb-4 relative bg-gray-50">
                         <input type="file" id="photoInput" accept="image/jpeg, image/jpg" class="hidden">
                         <label for="photoInput" class="cursor-pointer block">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2v12a2 2 0 002 2z" />
                             </svg>
                             <span class="text-blue-600 font-medium text-lg text-center block">เลือกไฟล์ภาพ JPEG สำหรับ Google Maps</span>
                         </label>
                     </div>
-
                     <div id="panorama" class="hidden shadow-inner overflow-hidden rounded-xl border border-gray-200"></div>
-                    <div id="viewer-placeholder" class="bg-gray-100 flex items-center justify-center rounded-xl h-[400px] text-gray-400 italic">
-                        รอการโหลดภาพ...
-                    </div>
+                    <div id="viewer-placeholder" class="bg-gray-100 flex items-center justify-center rounded-xl h-[400px] text-gray-400 italic">รอการโหลดภาพ...</div>
                 </div>
 
-                <!-- Step 2: Location -->
                 <div class="bg-white p-6 rounded-2xl custom-shadow">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                         <h2 class="text-xl font-semibold flex items-center gap-2 text-gray-800">
                             <span class="bg-blue-600 text-white w-7 h-7 flex items-center justify-center rounded-full text-sm font-bold">2</span>
                             <span>ระบุตำแหน่ง</span>
                         </h2>
-                        
                         <div class="flex w-full md:w-auto gap-2">
                             <input type="text" id="dmsInput" placeholder="9°04'20.1&quot;N 99°22'22.4&quot;E" class="flex-grow md:w-80 px-4 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                            <button id="applyDmsBtn" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all">
-                                ค้นหา
-                            </button>
+                            <button id="applyDmsBtn" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all">ค้นหา</button>
                         </div>
                     </div>
-
                     <div id="map"></div>
-                    
                     <div class="mt-4 bg-slate-800 p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-3">
                         <div class="flex items-center gap-2">
                             <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -90,7 +77,6 @@
                 </div>
             </div>
 
-            <!-- Step 3: Publish -->
             <div class="space-y-6">
                 <div class="bg-white p-6 rounded-2xl custom-shadow border-t-8 border-green-500 sticky top-8">
                     <h2 class="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2 uppercase">
@@ -115,28 +101,22 @@
                     </div>
 
                     <div class="mt-8 border-t border-gray-100 pt-6">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">สถานะการเชื่อมต่อ</h3>
-                        <p id="client-id-status" class="text-[10px] text-red-500 font-bold bg-red-50 p-3 rounded-lg border border-red-100 leading-relaxed">
-                            ⚠️ โปรดใส่ Google Client ID จริงในโค้ด (บรรทัดที่ 146)
-                        </p>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">การแก้ปัญหา redirect_uri_mismatch</h3>
+                        <div class="text-[10px] text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2">
+                            <p>คัดลอก URL ด้านล่างนี้ไปวางใน Google Console หัวข้อ <strong>Authorized JavaScript origins</strong>:</p>
+                            <code id="currentUrlDisplay" class="block bg-white p-2 border border-slate-300 rounded font-mono break-all text-blue-600"></code>
+                            <button onclick="copyCurrentUrl()" class="text-blue-500 font-bold hover:underline">คลิกเพื่อคัดลอก URL</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-2xl opacity-0 pointer-events-none transition-all duration-300 z-[1000] shadow-2xl border border-slate-700 font-medium text-sm">
-        ข้อความแจ้งเตือน
-    </div>
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-2xl opacity-0 pointer-events-none transition-all duration-300 z-[1000] shadow-2xl border border-slate-700 font-medium text-sm">ข้อความแจ้งเตือน</div>
 
     <script>
-        // === [ ขั้นตอนสำคัญ ] ===
-        // 1. ไปที่ https://console.cloud.google.com/
-        // 2. เปิดใช้งาน Street View Publish API
-        // 3. สร้าง OAuth Client ID (Web Application)
-        // 4. นำ Client ID มาวางที่นี่
         const CLIENT_ID = '772520947338-p56b737mr3a2gqsjkcedl90c6t55gmij.apps.googleusercontent.com';
-
         let accessToken = null;
         let tokenClient = null;
         let viewer = null;
@@ -144,15 +124,18 @@
         let marker = null;
         let selectedFile = null;
 
-        // UI Status Check
-        if (CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) {
-            console.warn("CLIENT_ID is not set.");
-        } else {
-            const statusBox = document.getElementById('client-id-status');
-            statusBox.innerText = "✅ พร้อมสำหรับการเชื่อมต่อ API";
-            statusBox.classList.replace('text-red-500', 'text-green-600');
-            statusBox.classList.replace('bg-red-50', 'bg-green-50');
-            statusBox.classList.replace('border-red-100', 'border-green-100');
+        // แสดง URL ปัจจุบันเพื่อช่วยแก้ปัญหา Redirect URI Mismatch
+        const origin = window.location.origin;
+        document.getElementById('currentUrlDisplay').innerText = origin;
+
+        function copyCurrentUrl() {
+            const el = document.createElement('textarea');
+            el.value = origin;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast("คัดลอก URL สำหรับ Google Console แล้ว");
         }
 
         function initMap() {
@@ -197,15 +180,29 @@
         }
 
         document.getElementById('authBtn').addEventListener('click', () => {
-            if (CLIENT_ID.includes('YOUR')) return showToast("โปรดใส่ Client ID ก่อน");
-            if (!tokenClient) {
-                tokenClient = google.accounts.oauth2.initTokenClient({
-                    client_id: CLIENT_ID,
-                    scope: 'https://www.googleapis.com/auth/streetviewpublish',
-                    callback: (res) => { if (res.access_token) { accessToken = res.access_token; onAuthSuccess(); } },
-                });
+            try {
+                if (!tokenClient) {
+                    tokenClient = google.accounts.oauth2.initTokenClient({
+                        client_id: CLIENT_ID,
+                        scope: 'https://www.googleapis.com/auth/streetviewpublish',
+                        callback: (res) => {
+                            if (res.error) {
+                                console.error(res);
+                                showToast("Error: " + res.error);
+                                return;
+                            }
+                            if (res.access_token) {
+                                accessToken = res.access_token;
+                                onAuthSuccess();
+                            }
+                        },
+                    });
+                }
+                tokenClient.requestAccessToken();
+            } catch (err) {
+                console.error(err);
+                showToast("OAuth Error: โปรดตรวจสอบการตั้งค่าใน Google Console");
             }
-            tokenClient.requestAccessToken();
         });
 
         function onAuthSuccess() {
@@ -241,10 +238,8 @@
             }
         });
 
-        // ACTUAL PUBLISH LOGIC
         document.getElementById('directPublishBtn').addEventListener('click', async () => {
             if (!accessToken || !selectedFile || !marker) return;
-            
             const btn = document.getElementById('directPublishBtn');
             const pBar = document.getElementById('progress-bar');
             const pText = document.getElementById('progress-text');
@@ -252,7 +247,6 @@
             btn.disabled = true;
 
             try {
-                // Step 1: Start Upload (Request URL)
                 pText.innerText = "กำลังขอ Upload URL..."; pBar.style.width = "20%";
                 const uploadRes = await fetch('https://streetviewpublish.googleapis.com/v1/photo:startUpload', {
                     method: 'POST',
@@ -260,7 +254,6 @@
                 });
                 const { uploadUrl } = await uploadRes.json();
 
-                // Step 2: Upload Binary Data
                 pText.innerText = "กำลังอัปโหลดไฟล์ภาพ..."; pBar.style.width = "50%";
                 await fetch(uploadUrl, {
                     method: 'POST',
@@ -268,7 +261,6 @@
                     body: selectedFile
                 });
 
-                // Step 3: Create Photo Metadata
                 pText.innerText = "กำลังระบุพิกัดลงแผนที่..."; pBar.style.width = "80%";
                 const latlng = marker.getLatLng();
                 const metadata = {
@@ -278,24 +270,18 @@
 
                 const createRes = await fetch('https://streetviewpublish.googleapis.com/v1/photo', {
                     method: 'POST',
-                    headers: { 
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify(metadata)
                 });
 
                 if (createRes.ok) {
                     pBar.style.width = "100%";
                     pText.innerText = "บันทึกสำเร็จ!";
-                    showToast("อัปโหลดลง Google Maps สำเร็จ! รอการตรวจสอบ 24-72 ชม.");
-                } else {
-                    throw new Error("Metadata creation failed");
-                }
-
+                    showToast("อัปโหลดสำเร็จ! จะปรากฏบนแผนที่ใน 24-72 ชม.");
+                } else { throw new Error("Metadata failed"); }
             } catch (err) {
                 pText.innerText = "เกิดข้อผิดพลาด!";
-                showToast("ไม่สามารถอัปโหลดได้ โปรดตรวจสอบสิทธิ์ API");
+                showToast("อัปโหลดล้มเหลว");
                 btn.disabled = false;
             }
         });
