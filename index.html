@@ -52,7 +52,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            <span class="text-blue-600 font-medium text-lg">เลือกไฟล์ภาพ JPEG</span>
+                            <span class="text-blue-600 font-medium text-lg text-center block">เลือกไฟล์ภาพ JPEG สำหรับ Google Maps</span>
                         </label>
                     </div>
 
@@ -70,7 +70,6 @@
                             <span>ระบุตำแหน่ง</span>
                         </h2>
                         
-                        <!-- DMS Input Field -->
                         <div class="flex w-full md:w-auto gap-2">
                             <input type="text" id="dmsInput" placeholder="9°04'20.1&quot;N 99°22'22.4&quot;E" class="flex-grow md:w-80 px-4 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                             <button id="applyDmsBtn" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-95 transition-all">
@@ -100,7 +99,7 @@
                     </h2>
                     
                     <div id="auth-warning" class="bg-amber-50 border border-amber-200 p-4 rounded-xl text-amber-800 text-xs mb-4">
-                        <strong>ต้องเข้าสู่ระบบก่อน:</strong> การบันทึกลง Google Maps โดยตรงต้องใช้การยืนยันตัวตนเพื่อระบุตัวตนผู้โพสต์
+                        <strong>ต้องเข้าสู่ระบบก่อน:</strong> การบันทึกลง Google Maps โดยตรงต้องใช้การยืนยันตัวตน
                     </div>
 
                     <button id="directPublishBtn" disabled class="w-full bg-gray-200 text-gray-400 font-bold py-5 rounded-2xl transition-all flex flex-col items-center justify-center gap-1 shadow-lg cursor-not-allowed">
@@ -112,13 +111,13 @@
                         <div class="w-full bg-gray-100 rounded-full h-2 mb-2 overflow-hidden">
                             <div id="progress-bar" class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
                         </div>
-                        <p id="progress-text" class="text-[10px] text-gray-500 uppercase text-center font-bold">กำลังประมวลผล...</p>
+                        <p id="progress-text" class="text-[10px] text-gray-500 uppercase text-center font-bold">กำลังเริ่มต้น...</p>
                     </div>
 
                     <div class="mt-8 border-t border-gray-100 pt-6">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">คำแนะนำการกรอกพิกัด</h3>
-                        <p class="text-[11px] text-gray-500 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
-                            คุณสามารถคัดลอกพิกัดจาก Google Maps ในรูปแบบ <b>9°04'20.1"N 99°22'22.4"E</b> มาวางในช่องด้านบนได้ทันที ระบบจะทำการแปลงค่าและเลื่อนแผนที่ให้โดยอัตโนมัติ
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">สถานะการเชื่อมต่อ</h3>
+                        <p id="client-id-status" class="text-[10px] text-red-500 font-bold bg-red-50 p-3 rounded-lg border border-red-100 leading-relaxed">
+                            ⚠️ โปรดใส่ Google Client ID จริงในโค้ด (บรรทัดที่ 146)
                         </p>
                     </div>
                 </div>
@@ -131,190 +130,172 @@
     </div>
 
     <script>
-        // Configuration
-        const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+        // === [ ขั้นตอนสำคัญ ] ===
+        // 1. ไปที่ https://console.cloud.google.com/
+        // 2. เปิดใช้งาน Street View Publish API
+        // 3. สร้าง OAuth Client ID (Web Application)
+        // 4. นำ Client ID มาวางที่นี่
+        const CLIENT_ID = '772520947338-p56b737mr3a2gqsjkcedl90c6t55gmij.apps.googleusercontent.com';
+
         let accessToken = null;
         let tokenClient = null;
-
         let viewer = null;
         let map = null;
         let marker = null;
         let selectedFile = null;
 
+        // UI Status Check
+        if (CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) {
+            console.warn("CLIENT_ID is not set.");
+        } else {
+            const statusBox = document.getElementById('client-id-status');
+            statusBox.innerText = "✅ พร้อมสำหรับการเชื่อมต่อ API";
+            statusBox.classList.replace('text-red-500', 'text-green-600');
+            statusBox.classList.replace('bg-red-50', 'bg-green-50');
+            statusBox.classList.replace('border-red-100', 'border-green-100');
+        }
+
         function initMap() {
             map = L.map('map').setView([13.7563, 100.5018], 10);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
-            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
             map.on('click', (e) => updateMarker(e.latlng.lat, e.latlng.lng));
         }
 
         function updateMarker(lat, lng, panTo = false) {
             const coords = [lat, lng];
-            if (marker) {
-                marker.setLatLng(coords);
-            } else {
+            if (marker) marker.setLatLng(coords);
+            else {
                 marker = L.marker(coords, {draggable: true}).addTo(map);
-                marker.on('dragend', function(event) {
-                    const position = marker.getLatLng();
-                    updateMarker(position.lat, position.lng);
-                });
+                marker.on('dragend', (e) => updateMarker(e.target.getLatLng().lat, e.target.getLatLng().lng));
             }
-            
-            if (panTo) {
-                map.setView(coords, 16);
-            }
-            
+            if (panTo) map.setView(coords, 16);
             document.getElementById('coords-display').innerText = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
             checkReadyToPublish();
         }
 
-        // DMS Parser: Converts 9°04'20.1"N 99°22'22.4"E to Decimal
         function parseDMS(dmsStr) {
-            try {
-                const regex = /(\d+)\s*°\s*(\d+)\s*'\s*([\d.]+)\s*"\s*([NSEW])/g;
-                let matches = [];
-                let match;
-                while ((match = regex.exec(dmsStr)) !== null) {
-                    const degrees = parseFloat(match[1]);
-                    const minutes = parseFloat(match[2]);
-                    const seconds = parseFloat(match[3]);
-                    const direction = match[4];
-                    
-                    let decimal = degrees + (minutes / 60) + (seconds / 3600);
-                    if (direction === 'S' || direction === 'W') decimal *= -1;
-                    matches.push(decimal);
-                }
-                
-                return matches.length === 2 ? { lat: matches[0], lng: matches[1] } : null;
-            } catch (e) {
-                return null;
+            const regex = /(\d+)\s*°\s*(\d+)\s*'\s*([\d.]+)\s*"\s*([NSEW])/g;
+            let m, res = [];
+            while ((m = regex.exec(dmsStr)) !== null) {
+                let d = parseFloat(m[1]) + parseFloat(m[2])/60 + parseFloat(m[3])/3600;
+                if (m[4] === 'S' || m[4] === 'W') d *= -1;
+                res.push(d);
             }
+            return res.length === 2 ? { lat: res[0], lng: res[1] } : null;
         }
 
         document.getElementById('applyDmsBtn').addEventListener('click', () => {
-            const input = document.getElementById('dmsInput').value.trim();
-            if (!input) return;
-            
-            const result = parseDMS(input);
-            if (result) {
-                updateMarker(result.lat, result.lng, true);
-                showToast("อัปเดตตำแหน่งตามพิกัด DMS แล้ว");
-            } else {
-                showToast("รูปแบบพิกัดไม่ถูกต้อง โปรดตรวจสอบอีกครั้ง");
-            }
+            const res = parseDMS(document.getElementById('dmsInput').value.trim());
+            if (res) updateMarker(res.lat, res.lng, true);
+            else showToast("รูปแบบพิกัดไม่ถูกต้อง");
         });
 
         function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.style.opacity = '1';
-            setTimeout(() => toast.style.opacity = '0', 3000);
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.style.opacity = '1';
+            setTimeout(() => t.style.opacity = '0', 3000);
         }
 
-        // Authentication Logic
         document.getElementById('authBtn').addEventListener('click', () => {
+            if (CLIENT_ID.includes('YOUR')) return showToast("โปรดใส่ Client ID ก่อน");
             if (!tokenClient) {
                 tokenClient = google.accounts.oauth2.initTokenClient({
                     client_id: CLIENT_ID,
                     scope: 'https://www.googleapis.com/auth/streetviewpublish',
-                    callback: (response) => {
-                        if (response.access_token) {
-                            accessToken = response.access_token;
-                            onAuthSuccess();
-                        }
-                    },
+                    callback: (res) => { if (res.access_token) { accessToken = res.access_token; onAuthSuccess(); } },
                 });
             }
             tokenClient.requestAccessToken();
         });
 
         function onAuthSuccess() {
-            const btn = document.getElementById('authBtn');
-            btn.innerHTML = "✅ เชื่อมต่อแล้ว";
-            btn.classList.add('bg-green-50', 'text-green-700', 'border-green-200');
+            document.getElementById('authBtn').innerHTML = "✅ เชื่อมต่อแล้ว";
             document.getElementById('auth-warning').classList.add('hidden');
             checkReadyToPublish();
-            showToast("เชื่อมต่อบัญชี Google สำเร็จ");
+            showToast("เชื่อมต่อ Google สำเร็จ");
         }
 
         function checkReadyToPublish() {
             const btn = document.getElementById('directPublishBtn');
-            const status = document.getElementById('publishStatus');
             if (accessToken && selectedFile && marker) {
                 btn.disabled = false;
                 btn.classList.remove('bg-gray-200', 'text-gray-400', 'cursor-not-allowed');
                 btn.classList.add('btn-google', 'text-white');
-                status.innerText = "พร้อมบันทึกลงแผนที่แล้ว";
+                document.getElementById('publishStatus').innerText = "พร้อมบันทึกแล้ว";
             }
         }
 
         document.getElementById('photoInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                selectedFile = file;
-                const reader = new FileReader();
-                reader.onload = (event) => {
+            selectedFile = e.target.files[0];
+            if (selectedFile) {
+                const r = new FileReader();
+                r.onload = (ev) => {
                     document.getElementById('panorama').classList.remove('hidden');
                     document.getElementById('viewer-placeholder').classList.add('hidden');
                     document.getElementById('upload-container').classList.add('hidden');
                     if (viewer) viewer.destroy();
-                    viewer = pannellum.viewer('panorama', { 
-                        "type": "equirectangular", 
-                        "panorama": event.target.result, 
-                        "autoLoad": true 
-                    });
+                    viewer = pannellum.viewer('panorama', { "type": "equirectangular", "panorama": ev.target.result, "autoLoad": true });
                     checkReadyToPublish();
-                    showToast("โหลดภาพ 360° เรียบร้อย");
                 };
-                reader.readAsDataURL(file);
+                r.readAsDataURL(selectedFile);
             }
         });
 
-        document.getElementById('copyCoordsBtn').addEventListener('click', () => {
-            const text = document.getElementById('coords-display').innerText;
-            if (text.includes(',')) {
-                navigator.clipboard.writeText(text).then(() => showToast("คัดลอกพิกัดทศนิยมแล้ว"));
-            }
-        });
-
-        // Direct Publish Logic
+        // ACTUAL PUBLISH LOGIC
         document.getElementById('directPublishBtn').addEventListener('click', async () => {
             if (!accessToken || !selectedFile || !marker) return;
-
-            const btn = document.getElementById('directPublishBtn');
-            const progressContainer = document.getElementById('progress-container');
-            const progressBar = document.getElementById('progress-bar');
-            const progressText = document.getElementById('progress-text');
-
-            btn.disabled = true;
-            progressContainer.classList.remove('hidden');
             
-            try {
-                progressText.innerText = "กำลังขอสิทธิ์การอัปโหลด...";
-                progressBar.style.width = "20%";
-                
-                setTimeout(() => {
-                    progressBar.style.width = "50%";
-                    progressText.innerText = "กำลังอัปโหลดไฟล์ภาพ 360°...";
-                    
-                    setTimeout(() => {
-                        progressBar.style.width = "80%";
-                        progressText.innerText = "กำลังบันทึกพิกัดและสร้างจุดสีน้ำเงิน...";
-                        
-                        setTimeout(() => {
-                            progressBar.style.width = "100%";
-                            progressText.innerText = "บันทึกสำเร็จ!";
-                            showToast("บันทึกภาพลง Google Maps เรียบร้อยแล้ว!");
-                            btn.innerHTML = "<span>บันทึกสำเร็จแล้ว</span>";
-                            btn.classList.replace('btn-google', 'bg-green-600');
-                        }, 1500);
-                    }, 2000);
-                }, 1000);
+            const btn = document.getElementById('directPublishBtn');
+            const pBar = document.getElementById('progress-bar');
+            const pText = document.getElementById('progress-text');
+            document.getElementById('progress-container').classList.remove('hidden');
+            btn.disabled = true;
 
-            } catch (error) {
-                showToast("เกิดข้อผิดพลาดในการเชื่อมต่อ Google API");
+            try {
+                // Step 1: Start Upload (Request URL)
+                pText.innerText = "กำลังขอ Upload URL..."; pBar.style.width = "20%";
+                const uploadRes = await fetch('https://streetviewpublish.googleapis.com/v1/photo:startUpload', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                const { uploadUrl } = await uploadRes.json();
+
+                // Step 2: Upload Binary Data
+                pText.innerText = "กำลังอัปโหลดไฟล์ภาพ..."; pBar.style.width = "50%";
+                await fetch(uploadUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'image/jpeg' },
+                    body: selectedFile
+                });
+
+                // Step 3: Create Photo Metadata
+                pText.innerText = "กำลังระบุพิกัดลงแผนที่..."; pBar.style.width = "80%";
+                const latlng = marker.getLatLng();
+                const metadata = {
+                    uploadReference: { uploadUrl },
+                    pose: { latLngPair: { latitude: latlng.lat, longitude: latlng.lng } }
+                };
+
+                const createRes = await fetch('https://streetviewpublish.googleapis.com/v1/photo', {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(metadata)
+                });
+
+                if (createRes.ok) {
+                    pBar.style.width = "100%";
+                    pText.innerText = "บันทึกสำเร็จ!";
+                    showToast("อัปโหลดลง Google Maps สำเร็จ! รอการตรวจสอบ 24-72 ชม.");
+                } else {
+                    throw new Error("Metadata creation failed");
+                }
+
+            } catch (err) {
+                pText.innerText = "เกิดข้อผิดพลาด!";
+                showToast("ไม่สามารถอัปโหลดได้ โปรดตรวจสอบสิทธิ์ API");
                 btn.disabled = false;
             }
         });
